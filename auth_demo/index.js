@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const session = require("express-session");
 const User = require("./models/user");
 
 mongoose
@@ -19,6 +20,14 @@ app.set("views", "views");
 app.use(
   express.urlencoded({
     extended: true,
+  })
+);
+
+app.use(
+  session({
+    secret: "notesecret",
+    resave: false,
+    saveUninitialized: false,
   })
 );
 
@@ -51,6 +60,7 @@ app.post("/login", async (req, res) => {
   if (user) {
     const isMath = await bcrypt.compare(password, user.password);
     if (isMath) {
+      req.session.user_id = user._id;
       res.redirect("/admin");
     } else {
       res.redirect("/login");
@@ -61,6 +71,9 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/admin", (req, res) => {
+  if (!req.session.user_id) {
+    res.redirect("/login");
+  }
   res.send("Admin page");
 });
 
