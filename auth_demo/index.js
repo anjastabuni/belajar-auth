@@ -47,7 +47,7 @@ app.post("/register", async (req, res) => {
     password: hashPassword,
   });
   await user.save();
-  res.redirect("/");
+  res.redirect("/admin");
 });
 
 app.get("/login", (req, res) => {
@@ -70,11 +70,18 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.post("/logout", (req, res) => {
+  // req.session.user_id = null
+  req.session.destroy(() => {
+    res.redirect("/login");
+  });
+});
+
 app.get("/admin", (req, res) => {
   if (!req.session.user_id) {
     res.redirect("/login");
   }
-  res.send("Admin page");
+  res.render("admin");
 });
 
 app.listen(3000, () => {
