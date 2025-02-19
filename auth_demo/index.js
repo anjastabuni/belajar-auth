@@ -31,11 +31,25 @@ app.use(
   })
 );
 
+const auth = (req, res, next) => {
+  if (!req.session.user_id) {
+    return res.redirect("/login");
+  }
+  next();
+};
+
+const authlr = (req, res, next) => {
+  if (req.session.user_id) {
+    return res.redirect("/admin");
+  }
+  return next();
+};
+
 app.get("/", (req, res) => {
   res.send("Homepage");
 });
 
-app.get("/register", (req, res) => {
+app.get("/register", authlr, (req, res) => {
   res.render("register");
 });
 
@@ -50,7 +64,7 @@ app.post("/register", async (req, res) => {
   res.redirect("/admin");
 });
 
-app.get("/login", (req, res) => {
+app.get("/login", authlr, (req, res) => {
   res.render("login");
 });
 
@@ -70,18 +84,19 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/logout", (req, res) => {
+app.post("/logout", auth, (req, res) => {
   // req.session.user_id = null
   req.session.destroy(() => {
     res.redirect("/login");
   });
 });
 
-app.get("/admin", (req, res) => {
-  if (!req.session.user_id) {
-    res.redirect("/login");
-  }
+app.get("/admin", auth, (req, res) => {
   res.render("admin");
+});
+
+app.get("/profile/settings", auth, (req, res) => {
+  res.send("profile settings" + req.session.user_id);
 });
 
 app.listen(3000, () => {
